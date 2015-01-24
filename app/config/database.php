@@ -54,9 +54,9 @@ return array(
 
 		'mysql' => array(
 			'driver'    => 'mysql',
-			'host'      => '54.69.192.193',
+			'host'      => 'localhost',
 			'database'  => 'Hackathon',
-			'username'  => 'root',
+			'username'  => 'hackathon',
 			'password'  => 'asdf',
 			'charset'   => 'utf8',
 			'collation' => 'utf8_unicode_ci',
