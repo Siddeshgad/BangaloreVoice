@@ -6,7 +6,6 @@
 	"type": "project",
 	"require": {
 		"laravel/framework": "4.2.*",
-		"aws/aws-sdk-php-laravel": "dev-master"
 	},
 	"autoload": {
 		"classmap": [
