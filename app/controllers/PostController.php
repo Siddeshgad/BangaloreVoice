@@ -155,16 +155,6 @@ class PostController extends \BaseController {
             return json_encode(array('data'=> 'Post does not exist.','status'=> false));
         }
 
-        $validator = Validator::make(
-            Input::get(),
-            array(
-                'title' =>'required|alpha|min:5',
-                'description' =>'required|alpha|max:10',
-            ));
-        if($validator->fails())
-        {
-            return json_encode(array('data'=> $validator->messages(),'status'=> false));
-        }
         $post->title = Input::get('title')?Input::get('title'):$post->title;
         $post->description = Input::get('description')?Input::get('description'):$post->description;
         $post->image = Input::get('image')?Input::get('image'):$post->image;
