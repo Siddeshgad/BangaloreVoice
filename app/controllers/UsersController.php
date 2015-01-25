@@ -274,6 +274,12 @@ class UsersController extends \BaseController {
 
 	public function logout()
 	{
+        $access_token = uniqid();
+        $user_id = Auth::user()->id;
+        $user = User::find($user_id);
+        $user->access_token = $access_token;
+        $user->save();
+        
 		Auth::logout();
         return Response::json(array('data'=> 'You are successfully logged out.','status'=> true));
 	}
