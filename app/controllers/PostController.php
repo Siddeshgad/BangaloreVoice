@@ -109,7 +109,7 @@ class PostController extends \BaseController {
 
 		        $insertedPost = Post::find($post->id);
 
-		        return Response::json(array('data'=> $insertedPost,'status'=> false));
+		        return Response::json(array('data'=> $insertedPost,'status'=> true));
 		    }
 		    else
 			{
