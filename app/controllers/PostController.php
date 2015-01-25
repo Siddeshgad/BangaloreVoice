@@ -31,12 +31,12 @@ class PostController extends \BaseController {
 		            return Response::json(array('data'=> 'Invalid pagination request.','status'=> false));
 		        }
 
-		        //if((Input::has('limit')) && (Input::get('limit') < 20))
+		        if((Input::has('limit')) && (Input::get('limit') < 20))
 		        	$limit = Input::get('limit');
-		        /*else
-		        	$limit = 20;*/
+		        else
+		        	$limit = 20;
 
-				$posts = Post::paginate($limit);
+				$posts = Post::orderBy('id', 'desc')->paginate($limit);
 				
 				return Response::json($posts);
 			}
