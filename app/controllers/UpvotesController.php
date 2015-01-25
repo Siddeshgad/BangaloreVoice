@@ -9,19 +9,33 @@ class UpvotesController extends \BaseController {
 	 */
 	public function index($post_id)
 	{
-		$user_id = Auth::user()->id;
-
-		$result = DB::table('upvote')->where('user_id', $user_id)
-									->where('post_id', $post_id)
-									->first();
-
-		if(!is_null($result))
+		if(isset($_GET['access_token']))
 		{
-			return json_encode(array('data'=> 'User upvoted this post','status'=> true));
+			$user_id = DB::table('users')->where('access_token', $_GET['access_token'])->pluck('id');
+
+			if(!is_null($user_id))
+			{
+				$result = DB::table('upvote')->where('user_id', $user_id)
+											->where('post_id', $post_id)
+											->first();
+
+				if(!is_null($result))
+				{
+					return Response::json(array('data'=> 'User upvoted this post','status'=> true));
+				}
+				else
+				{
+					return Response::json(array('data'=> 'No upvote for this post','status'=> false));
+				}
+			}
+			else
+			{
+				return Response::json(array('data'=> 'Invalid access token.','status'=> false));
+			}
 		}
 		else
 		{
-			return json_encode(array('data'=> 'No upvote for this post','status'=> false));
+			return Response::json(array('data'=> 'No access token passed.','status'=> false));
 		}
 	}
 
@@ -44,29 +58,45 @@ class UpvotesController extends \BaseController {
 	 */
 	public function store($post_id)
 	{
-        $upvote = new Upvote;
-        $upvote->user_id = Auth::user()->id;
-        $upvote->post_id = $post_id;
-       	
-        try {
-            $upvote->save();
-        }
-        catch(\Exception $e)
-        {
-            return json_encode(array('data'=> 'Unable to save post upvote.','status'=> false));
-        }
+		if(isset($_GET['access_token']))
+		{
+			$user_id = DB::table('users')->where('access_token', $_GET['access_token'])->pluck('id');
 
-        $upvotedPost = Upvote::find($upvote->id);
-        if(!is_null($upvotedPost))
-        {
-        	$post = Post::find($post_id);
+			if(!is_null($user_id))
+			{
+		        $upvote = new Upvote;
+		        $upvote->user_id = $user_id;
+		        $upvote->post_id = $post_id;
+		       	
+		        try {
+		            $upvote->save();
+		        }
+		        catch(\Exception $e)
+		        {
+		            return Response::json(array('data'=> 'Unable to save post upvote.','status'=> false));
+		        }
 
-			$post->upvote = $post->upvote + 1;
+		        $upvotedPost = Upvote::find($upvote->id);
+		        if(!is_null($upvotedPost))
+		        {
+		        	$post = Post::find($post_id);
 
-			$post->save();
-        }
+					$post->upvote = $post->upvote + 1;
 
-        return json_encode(array('data'=> $upvotedPost,'status'=> true));
+					$post->save();
+		        }
+
+		        return Response::json(array('data'=> $upvotedPost,'status'=> true));
+		    }
+		    else
+			{
+				return Response::json(array('data'=> 'Invalid access token.','status'=> false));
+			}
+		}
+		else
+		{
+			return Response::json(array('data'=> 'No access token passed.','status'=> false));
+		}
 	}
 
 
@@ -114,25 +144,38 @@ class UpvotesController extends \BaseController {
 	 */
 	public function destroy($post_id,$upvote_id)
 	{
-		$user_id = Auth::user()->id;
-
-		$result = DB::table('upvote')->where('user_id', $user_id)
-									->where('post_id', $post_id)
-									->pluck('id');
-
-		if(!is_null($result))
+		if(isset($_GET['access_token']))
 		{
-			try{
-	           Upvote::destroy($result);
-	        }
-	        catch (Exception $e)
-	        {
-	            return json_encode(array('data'=> 'Unable to delete post upvote.','status'=> false));
-	        }
+			$user_id = DB::table('users')->where('access_token', $_GET['access_token'])->pluck('id');
 
-	        return json_encode(array('data'=> 'Post upvote removed.','status'=> true));
+			if(!is_null($user_id))
+			{
+				$result = DB::table('upvote')->where('user_id', $user_id)
+											->where('post_id', $post_id)
+											->pluck('id');
+
+				if(!is_null($result))
+				{
+					try{
+			           Upvote::destroy($result);
+			        }
+			        catch (Exception $e)
+			        {
+			            return Response::json(array('data'=> 'Unable to delete post upvote.','status'=> false));
+			        }
+
+			        return Response::json(array('data'=> 'Post upvote removed.','status'=> true));
+				}
+			}
+			else
+			{
+				return Response::json(array('data'=> 'Invalid access token.','status'=> false));
+			}
 		}
-
+		else
+		{
+			return Response::json(array('data'=> 'No access token passed.','status'=> false));
+		}
 	}
 
 

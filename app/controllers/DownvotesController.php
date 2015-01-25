@@ -9,19 +9,33 @@ class DownvotesController extends \BaseController {
 	 */
 	public function index($post_id)
 	{
-		$user_id = Auth::user()->id;
-
-		$result = DB::table('downvote')->where('user_id', $user_id)
-									->where('post_id', $post_id)
-									->first();
-
-		if(!is_null($result))
+		if(isset($_GET['access_token']))
 		{
-			return json_encode(array('data'=> 'User downvoted this post','status'=> true));
+			$user_id = DB::table('users')->where('access_token', $_GET['access_token'])->pluck('id');
+
+			if(!is_null($user_id))
+			{
+				$result = DB::table('downvote')->where('user_id', $user_id)
+											->where('post_id', $post_id)
+											->first();
+
+				if(!is_null($result))
+				{
+					return Response::json(array('data'=> 'User downvoted this post','status'=> true));
+				}
+				else
+				{
+					return Response::json(array('data'=> 'No downvote for this post','status'=> false));
+				}
+			}
+			else
+			{
+				return Response::json(array('data'=> 'Invalid access token.','status'=> false));
+			}
 		}
 		else
 		{
-			return json_encode(array('data'=> 'No downvote for this post','status'=> false));
+			return Response::json(array('data'=> 'No access token passed.','status'=> false));
 		}
 	}
 
@@ -44,29 +58,45 @@ class DownvotesController extends \BaseController {
 	 */
 	public function store($post_id)
 	{
-		$downvote = new Downvote;
-        $downvote->user_id = Auth::user()->id;
-        $downvote->post_id = $post_id;
-       	
-        try {
-            $downvote->save();
-        }
-        catch(\Exception $e)
-        {
-            return json_encode(array('data'=> 'Unable to save post downvote.','status'=> false));
-        }
+		/*if(isset($_GET['access_token']))
+		{
+			$user_id = DB::table('users')->where('access_token', $_GET['access_token'])->pluck('id');
 
-        $downvotedPost = Downvote::find($downvote->id);
-        if(!is_null($downvotedPost))
-        {
-        	$post = Post::find($post_id);
+			if(!is_null($user_id))
+			{
+				$downvote = new Downvote;
+		        $downvote->user_id = Auth::user()->id;
+		        $downvote->post_id = $post_id;
+		       	
+		        try {
+		            $downvote->save();
+		        }
+		        catch(\Exception $e)
+		        {
+		            return Response::json(array('data'=> 'Unable to save post downvote.','status'=> false));
+		        }
 
-			$post->downvote = $post->downvote + 1;
+		        $downvotedPost = Downvote::find($downvote->id);
+		        if(!is_null($downvotedPost))
+		        {
+		        	$post = Post::find($post_id);
 
-			$post->save();
-        }
+					$post->downvote = $post->downvote + 1;
 
-        return json_encode(array('data'=> $downvotedPost,'status'=> true));
+					$post->save();
+		        }
+
+		        return Response::json(array('data'=> $downvotedPost,'status'=> true));
+		    }
+		    else
+			{
+				return Response::json(array('data'=> 'Invalid access token.','status'=> false));
+			}
+		}
+		else
+		{
+			return Response::json(array('data'=> 'No access token passed.','status'=> false));
+		}*/
 	}
 
 
@@ -114,24 +144,38 @@ class DownvotesController extends \BaseController {
 	 */
 	public function destroy($post_id,$downvote_id)
 	{
-		$user_id = Auth::user()->id;
-
-		$result = DB::table('downvote')->where('user_id', $user_id)
-									->where('post_id', $post_id)
-									->pluck('id');
-
-		if(!is_null($result))
+		/*if(isset($_GET['access_token']))
 		{
-			try{
-	           Downvote::destroy($result);
-	        }
-	        catch (Exception $e)
-	        {
-	            return json_encode(array('data'=> 'Unable to delete post downvote.','status'=> false));
-	        }
+			$user_id = DB::table('users')->where('access_token', $_GET['access_token'])->pluck('id');
 
-	        return json_encode(array('data'=> 'Post downvote removed.','status'=> true));
+			if(!is_null($user_id))
+			{
+				$result = DB::table('downvote')->where('user_id', $user_id)
+											->where('post_id', $post_id)
+											->pluck('id');
+
+				if(!is_null($result))
+				{
+					try{
+			           Downvote::destroy($result);
+			        }
+			        catch (Exception $e)
+			        {
+			            return Response::json(array('data'=> 'Unable to delete post downvote.','status'=> false));
+			        }
+
+			        return Response::json(array('data'=> 'Post downvote removed.','status'=> true));
+				}
+			}
+			else
+			{
+				return Response::json(array('data'=> 'Invalid access token.','status'=> false));
+			}
 		}
+		else
+		{
+			return Response::json(array('data'=> 'No access token passed.','status'=> false));
+		}*/
 
 	}
 

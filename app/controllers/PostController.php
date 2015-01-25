@@ -9,30 +9,46 @@ class PostController extends \BaseController {
 	 */
 	public function index()
 	{
-		$validator = Validator::make(
-            array(
-                'limit' => Input::get('limit'),
-                'page' => Input::get('page')
-            ),
-            array(
-                'limit' => 'sometimes|numeric',
-                'page' => 'sometimes|numeric'
-            )
-        );
+		if(isset($_GET['access_token']))
+		{
+			$user_id = DB::table('users')->where('access_token', $_GET['access_token'])->pluck('id');
 
-        if($validator->fails())
-        {
-            return json_encode(array('data'=> 'Invalid pagination request.','status'=> false));
-        }
+			if(!is_null($user_id))
+			{
+				$validator = Validator::make(
+		            array(
+		                'limit' => Input::get('limit'),
+		                'page' => Input::get('page')
+		            ),
+		            array(
+		                'limit' => 'sometimes|numeric',
+		                'page' => 'sometimes|numeric'
+		            )
+		        );
 
-        //if((Input::has('limit')) && (Input::get('limit') < 20))
-        	$limit = Input::get('limit');
-        /*else
-        	$limit = 20;*/
+		        if($validator->fails())
+		        {
+		            return Response::json(array('data'=> 'Invalid pagination request.','status'=> false));
+		        }
 
-		$posts = Post::paginate($limit);
-		
-		return Response::json($posts);
+		        //if((Input::has('limit')) && (Input::get('limit') < 20))
+		        	$limit = Input::get('limit');
+		        /*else
+		        	$limit = 20;*/
+
+				$posts = Post::paginate($limit);
+				
+				return Response::json($posts);
+			}
+			else
+			{
+				return Response::json(array('data'=> 'Invalid access token.','status'=> false));
+			}
+		}
+		else
+		{
+			return Response::json(array('data'=> 'No access token passed.','status'=> false));
+		}
 	}
 
 
@@ -54,40 +70,56 @@ class PostController extends \BaseController {
 	 */
 	public function store()
 	{
-		Input::merge(array_map('trim', Input::all()));
-        $validator = Validator::make(
-            Input::get(),
-            array(
-                'title' =>'required|min:5',
-                'description' =>'required|min:10',
-            ));
+		if(isset($_GET['access_token']))
+		{
+			$user_id = DB::table('users')->where('access_token', $_GET['access_token'])->pluck('id');
 
-        if($validator->fails())
-        {
-            return json_encode(array('data'=> $validator->messages(),'status'=> false));
-        }
+			if(!is_null($user_id))
+			{
+				Input::merge(array_map('trim', Input::all()));
+		        $validator = Validator::make(
+		            Input::get(),
+		            array(
+		                'title' =>'required|min:5',
+		                'description' =>'required|min:10',
+		            ));
 
-        $post = new Post;
-        $post->title = Input::get('title');
-        $post->description = Input::get('description');
-        $post->image = Input::get('image')?Input::get('image') : "";
-        $post->location = Input::get('location')?Input::get('location') : "";
-        $post->upvotes = 0 ;
-        $post->downvotes = 0 ;
-        $post->parent_id = 0 ;
-        $post->status = 0 ;
+		        if($validator->fails())
+		        {
+		            return Response::json(array('data'=> $validator->messages(),'status'=> false));
+		        }
 
-        try {
-            $post->save();
-        }
-        catch(\Exception $e)
-        {
-            return json_encode(array('data'=> 'Unable to save Post.','status'=> false));
-        }
+		        $post = new Post;
+		        $post->title = Input::get('title');
+		        $post->description = Input::get('description');
+		        $post->image = Input::get('image')?Input::get('image') : "";
+		        $post->location = Input::get('location')?Input::get('location') : "";
+		        $post->upvotes = 0 ;
+		        $post->downvotes = 0 ;
+		        $post->parent_id = 0 ;
+		        $post->status = 0 ;
 
-        $insertedPost = Post::find($post->id);
+		        try {
+		            $post->save();
+		        }
+		        catch(\Exception $e)
+		        {
+		            return Response::json(array('data'=> 'Unable to save Post.','status'=> false));
+		        }
 
-        return json_encode(array('data'=> $insertedPost,'status'=> false));
+		        $insertedPost = Post::find($post->id);
+
+		        return Response::json(array('data'=> $insertedPost,'status'=> false));
+		    }
+		    else
+			{
+				return Response::json(array('data'=> 'Invalid access token.','status'=> false));
+			}
+		}
+		else
+		{
+			return Response::json(array('data'=> 'No access token passed.','status'=> false));
+		}
 	}
 
 
@@ -99,22 +131,38 @@ class PostController extends \BaseController {
 	 */
 	public function show($id)
 	{
-		$validator = Validator::make(
-            array('id' => $id),
-            array('id' => 'required|numeric')
-        );
+		if(isset($_GET['access_token']))
+		{
+			$user_id = DB::table('users')->where('access_token', $_GET['access_token'])->pluck('id');
 
-        if($validator->fails())
-        {
-            return json_encode(array('data'=> 'Invalid Post Id.','status'=> false));
-        }
-        $post = Post::find($id);
+			if(!is_null($user_id))
+			{
+				$validator = Validator::make(
+		            array('id' => $id),
+		            array('id' => 'required|numeric')
+		        );
 
-        if (!$post) {
-        	return json_encode(array('data'=> 'Post does not exist.','status'=> false));
-        }
+		        if($validator->fails())
+		        {
+		            return Response::json(array('data'=> 'Invalid Post Id.','status'=> false));
+		        }
+		        $post = Post::find($id);
 
-        return json_encode(array('data'=> $post,'status'=> true));
+		        if (!$post) {
+		        	return Response::json(array('data'=> 'Post does not exist.','status'=> false));
+		        }
+
+		        return Response::json(array('data'=> $post,'status'=> true));
+		    }
+		    else
+			{
+				return Response::json(array('data'=> 'Invalid access token.','status'=> false));
+			}
+		}
+		else
+		{
+			return Response::json(array('data'=> 'No access token passed.','status'=> false));
+		}
 	}
 
 
@@ -138,41 +186,57 @@ class PostController extends \BaseController {
 	 */
 	public function update($id)
 	{
-		Input::merge(array_map('trim', Input::all()));
-        $validator = Validator::make(
-            array('id' => $id),
-            array('id' => 'required|numeric')
-        );
+		if(isset($_GET['access_token']))
+		{
+			$user_id = DB::table('users')->where('access_token', $_GET['access_token'])->pluck('id');
 
-        if($validator->fails())
-        {
-            return json_encode(array('data'=> 'Invalid Post Id.','status'=> false));
-        }
+			if(!is_null($user_id))
+			{
+				Input::merge(array_map('trim', Input::all()));
+		        $validator = Validator::make(
+		            array('id' => $id),
+		            array('id' => 'required|numeric')
+		        );
 
-        $post = Post::find($id);
+		        if($validator->fails())
+		        {
+		            return Response::json(array('data'=> 'Invalid Post Id.','status'=> false));
+		        }
 
-        if (!$post) {
-            return json_encode(array('data'=> 'Post does not exist.','status'=> false));
-        }
+		        $post = Post::find($id);
 
-        $post->title = Input::get('title')?Input::get('title'):$post->title;
-        $post->description = Input::get('description')?Input::get('description'):$post->description;
-        $post->image = Input::get('image')?Input::get('image'):$post->image;
-        $post->location = Input::get('location')?Input::get('location'):$post->location;
-        $post->status = Input::get('status')?((Input::get('status')==='true') ? 1 : 0):$post->status;
-        $post->response = Input::get('response')?Input::get('response'):$post->response;
+		        if (!$post) {
+		            return Response::json(array('data'=> 'Post does not exist.','status'=> false));
+		        }
 
-        try {
-            $post->save();
-        }
-        catch(\Exception $e)
-        {
-            return json_encode(array('data'=> 'Unable to save post.','status'=> false));
-        }
+		        $post->title = Input::get('title')?Input::get('title'):$post->title;
+		        $post->description = Input::get('description')?Input::get('description'):$post->description;
+		        $post->image = Input::get('image')?Input::get('image'):$post->image;
+		        $post->location = Input::get('location')?Input::get('location'):$post->location;
+		        $post->status = Input::get('status')?((Input::get('status')==='true') ? 1 : 0):$post->status;
+		        $post->response = Input::get('response')?Input::get('response'):$post->response;
 
-		$updatedPost = Post::find($id);        
+		        try {
+		            $post->save();
+		        }
+		        catch(\Exception $e)
+		        {
+		            return Response::json(array('data'=> 'Unable to save post.','status'=> false));
+		        }
 
-        return json_encode(array('data'=> $updatedPost,'status'=> true));
+				$updatedPost = Post::find($id);        
+
+		        return Response::json(array('data'=> $updatedPost,'status'=> true));
+		    }
+		    else
+			{
+				return Response::json(array('data'=> 'Invalid access token.','status'=> false));
+			}
+		}
+		else
+		{
+			return Response::json(array('data'=> 'No access token passed.','status'=> false));
+		}
 	}
 
 
@@ -184,36 +248,52 @@ class PostController extends \BaseController {
 	 */
 	public function destroy($id)
 	{
-		$validator = Validator::make(
-            array('id' => $id),
-            array('id' => 'required|numeric')
-        );
+		if(isset($_GET['access_token']))
+		{
+			$user_id = DB::table('users')->where('access_token', $_GET['access_token'])->pluck('id');
 
-        if($validator->fails())
-        {
-            return json_encode(array('data'=> 'Invalid Post Id.','status'=> false));
-        }
+			if(!is_null($user_id))
+			{
+				$validator = Validator::make(
+		            array('id' => $id),
+		            array('id' => 'required|numeric')
+		        );
 
-        $post = Post::withTrashed()->find($id);
+		        if($validator->fails())
+		        {
+		            return Response::json(array('data'=> 'Invalid Post Id.','status'=> false));
+		        }
 
-        if (!$post) {
-        	return json_encode(array('data'=> 'Post does not exist.','status'=> false));
-        }
-        if ($post->trashed()) {
-            return json_encode(array('data'=> 'Post already deleted.','status'=> false));
-        }
+		        $post = Post::withTrashed()->find($id);
 
-        try{
+		        if (!$post) {
+		        	return Response::json(array('data'=> 'Post does not exist.','status'=> false));
+		        }
+		        if ($post->trashed()) {
+		            return Response::json(array('data'=> 'Post already deleted.','status'=> false));
+		        }
 
-           $post->delete();
- //        Delete other things also
-        }
-        catch (Exception $e)
-        {
-            return json_encode(array('data'=> 'Unable to delete Post.','status'=> false));
-        }
+		        try{
 
-        return json_encode(array('data'=> 'Post deleted.','status'=> true));
+		           $post->delete();
+		 //        Delete other things also
+		        }
+		        catch (Exception $e)
+		        {
+		            return Response::json(array('data'=> 'Unable to delete Post.','status'=> false));
+		        }
+
+		        return Response::json(array('data'=> 'Post deleted.','status'=> true));
+		    }
+		    else
+			{
+				return Response::json(array('data'=> 'Invalid access token.','status'=> false));
+			}
+		}
+		else
+		{
+			return Response::json(array('data'=> 'No access token passed.','status'=> false));
+		}
 	}
 
 

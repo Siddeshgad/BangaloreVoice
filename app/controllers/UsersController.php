@@ -43,7 +43,7 @@ class UsersController extends \BaseController {
             ));
         if($validator->fails())
         {
-            return json_encode(array('data'=> $validator->messages(),'status'=> false));
+            return Response::json(array('data'=> $validator->messages(),'status'=> false));
         }
 
         $filename = "";
@@ -81,12 +81,12 @@ class UsersController extends \BaseController {
         }
         catch(\Exception $e)
         {
-            return json_encode(array('data'=> 'Unable to save User.','status'=> false));
+            return Response::json(array('data'=> 'Unable to save User.','status'=> false));
         }
 
         $insertedUser = User::find($user->id);
 
-        return json_encode(array('data'=> $insertedUser,'status'=> false));
+        return Response::json(array('data'=> $insertedUser,'status'=> false));
 	}
 
 
@@ -105,15 +105,15 @@ class UsersController extends \BaseController {
 
         if($validator->fails())
         {
-            return json_encode(array('data'=> 'Invalid User Id.','status'=> false));
+            return Response::json(array('data'=> 'Invalid User Id.','status'=> false));
         }
         $user = User::find($id);
 
         if (!$user) {
-        	return json_encode(array('data'=> 'User does not exist.','status'=> false));
+        	return Response::json(array('data'=> 'User does not exist.','status'=> false));
         }
 
-        return json_encode(array('data'=> $user,'status'=> true));
+        return Response::json(array('data'=> $user,'status'=> true));
 	}
 
 
@@ -145,13 +145,13 @@ class UsersController extends \BaseController {
 
         if($validator->fails())
         {
-            return json_encode(array('data'=> 'Invalid User Id.','status'=> false));
+            return Response::json(array('data'=> 'Invalid User Id.','status'=> false));
         }
 
         $user = User::find($id);
 
         if (!$user) {
-            return json_encode(array('data'=> 'User does not exist.','status'=> false));
+            return Response::json(array('data'=> 'User does not exist.','status'=> false));
         }
 
         $validator = Validator::make(
@@ -166,7 +166,7 @@ class UsersController extends \BaseController {
             ));
         if($validator->fails())
         {
-            return json_encode(array('data'=> $validator->messages(),'status'=> false));
+            return Response::json(array('data'=> $validator->messages(),'status'=> false));
         }
         $user->firstname = Input::get('firstname')?Input::get('firstname'):$user->firstname;
         $user->lastname = Input::get('lastname')?Input::get('lastname'):$user->lastname;
@@ -178,7 +178,7 @@ class UsersController extends \BaseController {
             }
             else
             {
-                return json_encode(array('data'=> 'Invalid User password.','status'=> false));
+                return Response::json(array('data'=> 'Invalid User password.','status'=> false));
             }
         }
         $user->email = Input::get('email')?Input::get('email'):$user->email;
@@ -189,12 +189,12 @@ class UsersController extends \BaseController {
         }
         catch(\Exception $e)
         {
-            return json_encode(array('data'=> 'Unable to save User.','status'=> false));
+            return Response::json(array('data'=> 'Unable to save User.','status'=> false));
         }
 
 		$updatedUser = User::find($id);        
 
-        return json_encode(array('data'=> $updatedUser,'status'=> true));
+        return Response::json(array('data'=> $updatedUser,'status'=> true));
 	}
 
 
@@ -213,16 +213,16 @@ class UsersController extends \BaseController {
 
         if($validator->fails())
         {
-            return json_encode(array('data'=> 'Invalid User Id.','status'=> false));
+            return Response::json(array('data'=> 'Invalid User Id.','status'=> false));
         }
 
         $user = User::withTrashed()->find($id);
 
         if (!$user) {
-        	return json_encode(array('data'=> 'User does not exist.','status'=> false));
+        	return Response::json(array('data'=> 'User does not exist.','status'=> false));
         }
         if ($user->trashed()) {
-            return json_encode(array('data'=> 'User already deleted.','status'=> false));
+            return Response::json(array('data'=> 'User already deleted.','status'=> false));
         }
 
         try{
@@ -232,10 +232,10 @@ class UsersController extends \BaseController {
         }
         catch (Exception $e)
         {
-            return json_encode(array('data'=> 'Unable to delete User.','status'=> false));
+            return Response::json(array('data'=> 'Unable to delete User.','status'=> false));
         }
 
-        return json_encode(array('data'=> 'User deleted.','status'=> true));
+        return Response::json(array('data'=> 'User deleted.','status'=> true));
 	}
 
 	public function login()
@@ -249,7 +249,7 @@ class UsersController extends \BaseController {
 
         /*if($validator->fails())
         {
-            return json_encode(array('data'=> $validator->messages(),'status'=> false));
+            return Response::json(array('data'=> $validator->messages(),'status'=> false));
         }*/
 
 		$user = array(
@@ -258,18 +258,24 @@ class UsersController extends \BaseController {
         );
         
         if (Auth::attempt($user)) {
-            return json_encode(array('data'=> 'You are successfully logged in.','status'=> true));
+            $access_token = uniqid();
+            $user_id = Auth::user()->id;
+            $user = User::find($user_id);
+            $user->access_token = $access_token;
+            $user->save();
+            
+            return Response::json(array('data'=> 'You are successfully logged in.','access_token' => $access_token ,'status'=> true));
         }
         else
         {
-        	return json_encode(array('data'=> 'Your email/password combination was incorrect.','status'=> false));
+        	return Response::json(array('data'=> 'Your email/password combination was incorrect.','access_token'=>"",'status'=> false));
         }
 	}
 
 	public function logout()
 	{
 		Auth::logout();
-        return json_encode(array('data'=> 'You are successfully logged out.','status'=> true));
+        return Response::json(array('data'=> 'You are successfully logged out.','status'=> true));
 	}
 
 	
