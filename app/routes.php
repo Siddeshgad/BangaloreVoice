@@ -21,9 +21,9 @@ Route::resource('users','UsersController',['except' => ['index','create', 'edit'
 Route::post('auth/login', 'UsersController@login'); // Post Login
 Route::any('auth/logout', 'UsersController@logout');
 
-Route::group(array('before' => 'auth'), function()
-{
+/*Route::group(array('before' => 'auth'), function()
+{*/
     Route::resource('post','PostController',['except' => ['create', 'edit']]);
     Route::resource('post.upvote', 'UpvotesController',['except' => ['create','edit','update','show']]);
     Route::resource('post.downvote', 'DownvotesController',['except' => ['create','edit','update','show']]);
-});
+/*});*/
